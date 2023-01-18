@@ -1,5 +1,4 @@
 'use strict';
-const Util = require('../../util/util');
 const axios = require('axios');
 const Record = require('../models/record');
 const Price = require('../models/price');
@@ -13,36 +12,25 @@ const info = console.info;
 const log = console.log;
 const error = console.error;
 function getCost(req, res) {
-	const PARAMS =
-		'&origins=' +
-		req.params.latorigen +
-		',' +
-		req.params.lonorigen +
-		'&destinations=' +
-		req.params.latdestino +
-		',' +
-		req.params.londestino;
-	const ORIGINPARAMS = '&lat=' + req.params.latorigen + '&lon=' + req.params.lonorigen;
-	const DESTINATIONPARAMS = '&lat=' + req.params.latdestino + '&lon=' + req.params.londestino;
+	const {latorigen, lonorigen, latdestino, londestino} = req.params;
+	const PARAMS = `&origins=${latorigen},${lonorigen}&destinations=${latdestino},${londestino}`;
+	info(`URL ${MAPS_URL}${PARAMS}`);
+	const ORIGINPARAMS = `&lat=${latorigen}&lon=${lonorigen}`;
+	const DESTINATIONPARAMS = `&lat=${latdestino}&lon=${londestino}`;
 	let resultData = [];
-	if (
-		validateParams(
-			req.params.latorigen,
-			req.params.lonorigen,
-			req.params.latdestino,
-			req.params.londestino
-		)
-	) {
+	if (validateParams(latorigen, lonorigen, latdestino, londestino)) {
 		axios
 			.get(MAPS_URL + PARAMS)
 			.then(function (response) {
-				resultData.push(response.data);
+				const {data} = response;
+				resultData.push(data);
+				log(data);
 				if (
-					response.data &&
-					response.data.destination_addresses &&
-					response.data.destination_addresses[0] != '' &&
-					response.data.origin_addresses &&
-					response.data.origin_addresses[0] != ''
+					data &&
+					data.destination_addresses &&
+					data.destination_addresses[0] != '' &&
+					data.origin_addresses &&
+					data.origin_addresses[0] != ''
 				) {
 					axios
 						.get(WEATHER_ZIP_CODE_URL + ORIGINPARAMS)
@@ -53,7 +41,6 @@ function getCost(req, res) {
 								.get(WEATHER_ZIP_CODE_URL + DESTINATIONPARAMS)
 								.then(async response => {
 									//Destination weather
-									console.log('response.data: ', resultData.data);
 									resultData.push(response.data);
 									let origin = {
 										place: resultData[0].origin_addresses[0],
@@ -83,21 +70,15 @@ function getCost(req, res) {
 										distance = resultData[0].rows[0].elements[0].distance.text;
 										time = resultData[0].rows[0].elements[0].duration.text;
 									} else {
-										console.log(
+										log(
 											'No hay resultados para la distancia| ',
 											resultData[0].rows[0].elements[0]
 										);
 									}
 
 									let precio = await findPrice();
-									console.log(
-										'precio |',
-										precio,
-										resultData,
-										origin,
-										destination,
-										distance,
-										time
+									log(
+										`precio | ${precio} ${resultData} ${origin} ${destination} ${distance} ${time}`
 									);
 									await buildResponse(
 										precio,
@@ -110,25 +91,25 @@ function getCost(req, res) {
 									);
 								})
 								.catch(function (error) {
-									console.log('error : ', error);
-									Util.errorMessage(res, error);
+									log('error : ', error);
+									sendError(res, error);
 								});
 						})
 						.catch(function (error) {
 							console.log('error : ', error);
-							Util.errorMessage(res, error);
+							sendError(res, error);
 						});
 				} else {
 					console.log('response.data: vacio ', response.data);
-					Util.errorMessage(res, {params: PARAMS, status: 'Location not found'});
+					sendError(res, {params: PARAMS, status: 'Location not found'});
 				}
 			})
 			.catch(function (error) {
 				console.log('error : ', error);
-				Util.errorMessage(res, error);
+				sendError(res, error);
 			});
 	} else {
-		Util.errorMessage(res, 'Latitud y longitud deben de ser numericos');
+		sendError(res, 'Latitud y longitud deben de ser numericos');
 	}
 }
 
@@ -153,10 +134,10 @@ async function buildResponse(prices, resultData, origin, destination, distance, 
 		message: '#AmoTirarCodigo&LosDesplieguesContinuos'
 	};
 	let recordSaved = await saveRecord(input, output);
-	Util.dataValidation(res, output, controllerName);
+	dataValidation(res, output, controllerName);
 }
 async function findPrice() {
-	return Price.findOne({}, (err, price) => {
+	return await Price.findOne({}, (err, price) => {
 		if (err) {
 			console.log(' Price not found ');
 			return err;
@@ -175,7 +156,7 @@ async function findPrice() {
 				// console.log('price found : INPUTS ', INPUTS)
 			}
 		}
-	});
+	}).clone();
 }
 async function saveRecord(input, output) {
 	let record = new Record();
@@ -197,12 +178,12 @@ async function saveRecord(input, output) {
 }
 
 function validateParams(lat, lon, lat2, lon2) {
-	console.log(lat, lon, lat2, lon2);
+	log(lat, lon, lat2, lon2);
 	if (
-		Util.floatValidation(lat) &&
-		Util.floatValidation(lon) &&
-		Util.floatValidation(lat2) &&
-		Util.floatValidation(lon2)
+		floatValidation(lat) &&
+		floatValidation(lon) &&
+		floatValidation(lat2) &&
+		floatValidation(lon2)
 	) {
 		return true;
 	}
@@ -243,10 +224,10 @@ function calculateCost(input, km, time, weatherCodeOrigin, weatherCodeDestinatio
 	//     factorTiempo = getDayTime(input.factortiempo[0]), // Dia, tarde o Noche
 	//     tiempoARecorrerMin = (time / 60), // tiempo que se tardará en recorrer esa distancia (minutos)
 	//     costoChoferXMin = input.costoChoferXMin //costo del chofer por minuto(en pesos)
-	//     //valor = [(gastosXkilometroGasolina * NumeroKilometrosARecorrer) (factorDeClima)] + [FactorTiempo * tiempoARecorrerMin * costoChoferXMin]
-	//     //console.log("Resultado :", gastosXkilometroGasolina, kilometrosXRecorrer, factorDeClima, factorTiempo, tiempoARecorrerMin, costoChoferXMin, '= ', gastosXkilometroGasolina * kilometrosXRecorrer * factorDeClima) + (factorTiempo * tiempoARecorrerMin * costoChoferXMin)
+	//     valor = [(gastosXkilometroGasolina * NumeroKilometrosARecorrer) (factorDeClima)] + [FactorTiempo * tiempoARecorrerMin * costoChoferXMin]
+	//     console.log("Resultado :", gastosXkilometroGasolina, kilometrosXRecorrer, factorDeClima, factorTiempo, tiempoARecorrerMin, costoChoferXMin, '= ', gastosXkilometroGasolina * kilometrosXRecorrer * factorDeClima) + (factorTiempo * tiempoARecorrerMin * costoChoferXMin)
 	//     return { gastosXkilometroGasolina, kilometrosXRecorrer, factorDeClima, factorTiempo, tiempoARecorrerMin, costoChoferXMin, gastosXkilometroGasolina, kilometrosXRecorrer, factorDeClima, factorTiempo, tiempoARecorrerMin, costoChoferXMin, costo: (gastosXkilometroGasolina * kilometrosXRecorrer * factorDeClima) + (factorTiempo * tiempoARecorrerMin * costoChoferXMin) }
-	//     //valor = [(1.8 * 6)(1.6)] + (0.5*10) = (10.8 * 1.6) + 5 = 6.48  +5 = 11.48
+	//     valor = [(1.8 * 6)(1.6)] + (0.5*10) = (10.8 * 1.6) + 5 = 6.48  +5 = 11.48
 }
 
 function getWeatherFactor(weatherPrice, weather) {
@@ -259,14 +240,12 @@ function getWeatherFactor(weatherPrice, weather) {
 }
 
 function getDayTime(time) {
-	var hora = new Date();
-	if (hora.getHours() >= 7 && hora.getHours() <= 15) {
-		return time.dia; //'Dia'
-	} else if (hora.getHours() >= 16) {
-		return time.tarde; //'tarde'
-	} else if (hora.getHours() >= 18) {
-		return time.noche; //'Noche'
-	}
+	const hora = new Date();
+	if (hora.getHours() >= 7 && hora.getHours() <= 15) return time.dia; //'Dia'
+
+	if (hora.getHours() >= 16) return time.tarde; //'tarde'
+
+	return time.noche; //'Noche'
 }
 
 //get the distance by latitude and longitude
@@ -283,7 +262,7 @@ function getDistanceByCoordinates(req, res) {
 			send(res, data);
 		})
 		.catch(function (error) {
-			sendError(res, error, Util.readMessage(controllerName, error));
+			sendError(res, error, readMessage(controllerName, error));
 		});
 }
 
@@ -300,20 +279,20 @@ function getWeatherByCoordinates(req, res) {
 			send(res, data);
 		})
 		.catch(function (error) {
-			sendError(res, error, Util.readMessage(controllerName, error));
+			sendError(res, error, readMessage(controllerName, error));
 		});
 }
 
 function getParams(req, res) {
-	let precio = Price.findOne({}, (err, price) => {
+	const precio = Price.findOne({}, (err, price) => {
 		if (err) {
-			Util.errorMessage(res, error);
+			sendError(res, error);
 		} else {
 			if (!price) {
-				Util.errorMessage(res, 'No hay precios en la base de datos');
+				sendError(res, 'No hay precios en la base de datos');
 			} else {
 				// INPUTS = { factorclima: price.factorclima, factortiempo: price.factortiempo, gasolina: price.gasolina, rendimientoxkm: price.rendimientoxkm, costoChoferXMin: price.costoChoferXMin }
-				Util.message(res, price);
+				send(res, price);
 			}
 		}
 	});
@@ -326,18 +305,18 @@ function setParams(req, res) {
 	if (validParams.status) {
 		Price.findOneAndUpdate(_id, update, (err, priceUpdated) => {
 			if (err) {
-				Util.errorMessage(res, error);
+				sendError(res, error);
 			} else {
 				if (!priceUpdated) {
-					Util.errorMessage(res, 'Error al guardar los parametros en la base de datos');
+					sendError(res, 'Error al guardar los parametros en la base de datos');
 				} else {
 					console.log('priceUpdated | ', priceUpdated);
-					Util.message(res, priceUpdated);
+					send(res, priceUpdated);
 				}
 			}
 		});
 	} else {
-		Util.errorMessage(res, validParams.message);
+		sendError(res, validParams.message);
 	}
 }
 
@@ -350,17 +329,17 @@ function validateConfigParams(obj) {
 		obj.factortiempo != null &&
 		obj.factortiempo.length > 0
 	) {
-		if (obj.factortiempo[0].dia && Util.floatValidation(obj.factortiempo[0].dia)) {
+		if (obj.factortiempo[0].dia && floatValidation(obj.factortiempo[0].dia)) {
 			response = {status: true, message: ''};
 		} else {
 			response = {status: false, message: 'EL valor del dia debe ser numerico'};
 		}
-		if (obj.factortiempo[0].tarde && Util.floatValidation(obj.factortiempo[0].tarde)) {
+		if (obj.factortiempo[0].tarde && floatValidation(obj.factortiempo[0].tarde)) {
 			response = {status: true, message: ''};
 		} else {
 			response = {status: false, message: 'EL valor de la tarde debe ser numerico'};
 		}
-		if (obj.factortiempo[0].noche && Util.floatValidation(obj.factortiempo[0].noche)) {
+		if (obj.factortiempo[0].noche && floatValidation(obj.factortiempo[0].noche)) {
 			response = {status: true, message: ''};
 		} else {
 			response = {status: false, message: 'EL valor de la noche debe ser numerico'};
@@ -375,7 +354,7 @@ function validateConfigParams(obj) {
 		obj.factorclima != null &&
 		obj.factorclima.length > 0
 	) {
-		if (obj.factorclima[0].value && Util.floatValidation(obj.factorclima[0].value)) {
+		if (obj.factorclima[0].value && floatValidation(obj.factorclima[0].value)) {
 			response = {status: true, message: ''};
 		} else {
 			response = {
@@ -388,20 +367,20 @@ function validateConfigParams(obj) {
 	}
 
 	//validar la gasolina
-	if (obj.gasolina && Util.floatValidation(obj.gasolina)) {
+	if (obj.gasolina && floatValidation(obj.gasolina)) {
 		response = {status: true, message: ''};
 	} else {
 		response = {status: false, message: 'EL valor de la gasolina debe ser numerico'};
 	}
 
 	//validar la rendimientoxkm
-	if (obj.rendimientoxkm && Util.floatValidation(obj.rendimientoxkm)) {
+	if (obj.rendimientoxkm && floatValidation(obj.rendimientoxkm)) {
 		response = {status: true, message: ''};
 	} else {
 		response = {status: false, message: 'EL valor del  rendimientoxkm debe ser numerico'};
 	}
 	//validar la costoChoferXMin
-	if (obj.costoChoferXMin && Util.floatValidation(obj.costoChoferXMin)) {
+	if (obj.costoChoferXMin && floatValidation(obj.costoChoferXMin)) {
 		response = {status: true, message: ''};
 	} else {
 		response = {status: false, message: 'EL valor del  costoChoferXMin debe ser numerico'};
