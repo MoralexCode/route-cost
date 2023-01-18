@@ -1,4 +1,5 @@
 'use strict';
+require('./util/global'); //load global.js to add new functions to Global enviroment
 var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();

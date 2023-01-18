@@ -9,7 +9,9 @@ const APPID = process.env.APPID; //API key from weather
 const MAPS_URL = process.env.MAPS_URL + APIKEY;
 const WEATHER_ZIP_CODE_URL = process.env.WEATHER_ZIP_CODE_URL + APPID;
 const controllerName = 'CostController';
-
+const info = console.info;
+const log = console.log;
+const error = console.error;
 function getCost(req, res) {
 	const PARAMS =
 		'&origins=' +
@@ -269,35 +271,19 @@ function getDayTime(time) {
 
 //get the distance by latitude and longitude
 function getDistanceByCoordinates(req, res) {
-	console.log(
-		'params : ',
-		req.params.latorigen,
-		' ',
-		req.params.lonorigen,
-		'   ****** ',
-		req.params.latdestino,
-		' ',
-		req.params.londestino
-	);
-	var PARAMS =
-		'&origins=' +
-		req.params.latorigen +
-		',' +
-		req.params.lonorigen +
-		'&destinations=' +
-		req.params.latdestino +
-		',' +
-		req.params.londestino;
-	console.log(' ruta: ', MAPS_URL + PARAMS);
+	const {latorigen, lonorigen, latdestino, londestino} = req.params;
+	const PARAMS = `&origins=${latorigen},${lonorigen}&destinations=${latdestino},${londestino}`;
+	info(`URL ${MAPS_URL} ${PARAMS}`);
+
 	axios
 		.get(MAPS_URL + PARAMS)
 		.then(function (response) {
-			console.log(response.data);
-			Util.message(res, response.data);
+			const {data} = response;
+			log(data);
+			send(res, data);
 		})
 		.catch(function (error) {
-			console.log('error : ', error);
-			Util.errorMessage(res, error);
+			sendError(res, error, Util.readMessage(controllerName, error));
 		});
 }
 
