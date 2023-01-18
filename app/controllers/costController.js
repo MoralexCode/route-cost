@@ -289,17 +289,18 @@ function getDistanceByCoordinates(req, res) {
 
 //get the weather by latitude and longitude
 function getWeatherByCoordinates(req, res) {
-	console.log('params : ', req.params.lat);
-	var PARAMS = '&lat=' + req.params.lat + '&lon=' + req.params.lon;
-	console.log(' ruta: ', WEATHER_ZIP_CODE_URL + PARAMS);
+	const {lat, lon} = req.params;
+	const PARAMS = `&lat=${lat}&lon=${lon}`;
+	log(' URL : ', WEATHER_ZIP_CODE_URL + PARAMS);
 	axios
 		.get(WEATHER_ZIP_CODE_URL + PARAMS)
 		.then(function (response) {
-			console.log(response.data);
-			Util.message(res, response.data);
+			const {data} = response;
+			log(data);
+			send(res, data);
 		})
 		.catch(function (error) {
-			Util.errorMessage(res, error);
+			sendError(res, error, Util.readMessage(controllerName, error));
 		});
 }
 
