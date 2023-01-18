@@ -179,12 +179,7 @@ async function saveRecord(input, output) {
 
 function validateParams(lat, lon, lat2, lon2) {
 	log(lat, lon, lat2, lon2);
-	if (
-		floatValidation(lat) &&
-		floatValidation(lon) &&
-		floatValidation(lat2) &&
-		floatValidation(lon2)
-	) {
+	if (isValidFloat(lat) && isValidFloat(lon) && isValidFloat(lat2) && isValidFloat(lon2)) {
 		return true;
 	}
 	return false;
@@ -283,19 +278,18 @@ function getWeatherByCoordinates(req, res) {
 		});
 }
 
-function getParams(req, res) {
-	const precio = Price.findOne({}, (err, price) => {
+async function getParams(req, res) {
+	Price.findOne({}, (err, price) => {
 		if (err) {
 			sendError(res, error);
 		} else {
 			if (!price) {
 				sendError(res, 'No hay precios en la base de datos');
 			} else {
-				// INPUTS = { factorclima: price.factorclima, factortiempo: price.factortiempo, gasolina: price.gasolina, rendimientoxkm: price.rendimientoxkm, costoChoferXMin: price.costoChoferXMin }
 				send(res, price);
 			}
 		}
-	});
+	}).clone();
 }
 
 function setParams(req, res) {
@@ -329,17 +323,17 @@ function validateConfigParams(obj) {
 		obj.factortiempo != null &&
 		obj.factortiempo.length > 0
 	) {
-		if (obj.factortiempo[0].dia && floatValidation(obj.factortiempo[0].dia)) {
+		if (obj.factortiempo[0].dia && isValidFloat(obj.factortiempo[0].dia)) {
 			response = {status: true, message: ''};
 		} else {
 			response = {status: false, message: 'EL valor del dia debe ser numerico'};
 		}
-		if (obj.factortiempo[0].tarde && floatValidation(obj.factortiempo[0].tarde)) {
+		if (obj.factortiempo[0].tarde && isValidFloat(obj.factortiempo[0].tarde)) {
 			response = {status: true, message: ''};
 		} else {
 			response = {status: false, message: 'EL valor de la tarde debe ser numerico'};
 		}
-		if (obj.factortiempo[0].noche && floatValidation(obj.factortiempo[0].noche)) {
+		if (obj.factortiempo[0].noche && isValidFloat(obj.factortiempo[0].noche)) {
 			response = {status: true, message: ''};
 		} else {
 			response = {status: false, message: 'EL valor de la noche debe ser numerico'};
@@ -354,7 +348,7 @@ function validateConfigParams(obj) {
 		obj.factorclima != null &&
 		obj.factorclima.length > 0
 	) {
-		if (obj.factorclima[0].value && floatValidation(obj.factorclima[0].value)) {
+		if (obj.factorclima[0].value && isValidFloat(obj.factorclima[0].value)) {
 			response = {status: true, message: ''};
 		} else {
 			response = {
@@ -367,29 +361,25 @@ function validateConfigParams(obj) {
 	}
 
 	//validar la gasolina
-	if (obj.gasolina && floatValidation(obj.gasolina)) {
+	if (obj.gasolina && isValidFloat(obj.gasolina)) {
 		response = {status: true, message: ''};
 	} else {
 		response = {status: false, message: 'EL valor de la gasolina debe ser numerico'};
 	}
 
 	//validar la rendimientoxkm
-	if (obj.rendimientoxkm && floatValidation(obj.rendimientoxkm)) {
+	if (obj.rendimientoxkm && isValidFloat(obj.rendimientoxkm)) {
 		response = {status: true, message: ''};
 	} else {
 		response = {status: false, message: 'EL valor del  rendimientoxkm debe ser numerico'};
 	}
 	//validar la costoChoferXMin
-	if (obj.costoChoferXMin && floatValidation(obj.costoChoferXMin)) {
+	if (obj.costoChoferXMin && isValidFloat(obj.costoChoferXMin)) {
 		response = {status: true, message: ''};
 	} else {
 		response = {status: false, message: 'EL valor del  costoChoferXMin debe ser numerico'};
 	}
 
-	//{"factortiempo":[{"dia":1,"tarde":1.5,"noche":2}],
-	//"factorclima":[{"code":200,"value":1.5,"name":"Thunderstorm"},
-	//{"code":300,"value":1.1,"name":"Drizzle"},{"code":500,"value":1.5,"name":"Rain"},{"code":600,"value":1.5,"name":"Snow"},{"code":700,"value":1.1,"name":"other"},{"code":800,"value":1,"name":"Clear"}],"_id":"5e1b898208242773ed41be15",
-	//"gasolina":"20.5","rendimientoxkm":"18","costoChoferXMin":"1.1"}}
 	return response;
 }
 

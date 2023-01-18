@@ -40,7 +40,7 @@ const dataValidation = (res, data, controllerName) => {
 	}
 };
 
-const floatValidation = number => {
+const isValidFloat = number => {
 	if (!isNaN(number)) {
 		try {
 			if (parseFloat(number)) {
@@ -59,4 +59,4 @@ module.exports = global.send = send;
 module.exports = global.sendError = sendError;
 module.exports = global.readMessage = readMessage;
 module.exports = global.dataValidation = dataValidation;
-module.exports = global.floatValidation = floatValidation;
+module.exports = global.isValidFloat = isValidFloat;

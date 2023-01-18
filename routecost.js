@@ -1,19 +1,55 @@
-const app = require('./app');
+'use strict';
+require('./util/global'); //load global.js to add new functions to Global enviroment
+const express = require('express'),
+	app = express();
+const boxen = require('boxen');
+const cors = require('cors');
+const pkg = require('./package.json');
+const {green, yellow, cyan, dim} = require('chalk');
 require('dotenv').config();
-let port = process.env.PORT || 5050;
-let db = require('mongoose');
+const ENV = process.env; // GET environment variables
+const PORT = ENV.PORT || 3000;
+const HOST = ENV.HOST;
+const db = require('mongoose');
 db.Promise = global.Promise;
-let uri = process.env.MONGODB_URL;
-app.listen(port, function () {
-	console.log(`============================================================================ `);
-	console.log(`Servidor del api rest  escuhando en ${process.env.HOST}:${port}/ `);
-	db.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true})
-		.then(() => {
-			console.log('[db] Conectada con éxito');
+db.set('strictQuery', true);
+const URI = ENV.MONGODB_URL;
 
-			console.log(
-				`============================================================================ `
+const log = console.log;
+app.use(cors());
+app.use(express.urlencoded({extended: true}));
+app.use(express.json({limit: '100mb'}));
+
+//============ add Routes ===================
+const routes = require('./app/routes/costRoutes');
+
+// ruta base
+app.use('/api/v1/', routes);
+
+app.get('*', function (req, res) {
+	res.status(200).send({
+		message: 'Bienvenidos a CostRoutes'
+	});
+});
+const server = app.listen(PORT, () => {
+	const appName = pkg.name;
+	// log(appName, `DB host http://${URI}/`);
+	db.connect(URI, {useNewUrlParser: true, useUnifiedTopology: true})
+		.then(() => {
+			log(
+				boxen(
+					`👂Listening at http://${HOST}:${PORT}\n[DB] Conectada con éxito  \n🔥  ${cyan(
+						` Learn, develop, enjoy, repeat  `
+					)}😎 `,
+					{
+						title: appName,
+						titleAlignment: 'center',
+						borderStyle: 'double'
+					}
+				)
 			);
 		})
 		.catch(err => console.error('[db]', err));
 });
+
+module.exports = {app, server};

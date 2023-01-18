@@ -1,0 +1,44 @@
+{
+    "gasolina" : "20.5",
+    "rendimientoxkm" : "18",
+    "factortiempo" : [ 
+        {
+            "dia" : "1",
+            "tarde" : "1.5",
+            "noche" : "2"
+        }
+    ],
+    "factorclima" : [ 
+        {
+            "code" : 200,
+            "value" : "1.5",
+            "name" : "Thunderstorm"
+        }, 
+        {
+            "code" : 300,
+            "value" : "1.1",
+            "name" : "Drizzle"
+        }, 
+        {
+            "code" : 500,
+            "value" : "1.5",
+            "name" : "Rain"
+        }, 
+        {
+            "code" : 600,
+            "value" : "1.5",
+            "name" : "Snow"
+        }, 
+        {
+            "code" : 700,
+            "value" : "1.1",
+            "name" : "other"
+        }, 
+        {
+            "code" : 800,
+            "value" : "1",
+            "name" : "Clear"
+        }
+    ],
+    "costoChoferXMin" : "1.1"
+}
