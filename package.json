@@ -4,8 +4,10 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"start": "nodemon routecost.js",
-		"test": "jest --watchAll"
+		"dev": "NODE_ENV=development nodemon routecost.js",
+		"start": "NODE_ENV=production node  routecost.js",
+		"test": "NODE_ENV=test  jest --verbose --silent --detectOpenHandles",
+		"test:watch": "npm run test -- --watch"
 	},
 	"repository": {
 		"type": "git",
