@@ -55,9 +55,13 @@ const isValidFloat = number => {
 	return false;
 };
 const contentType = 'application/json; charset=utf-8';
+const log = console.log;
+const info = console.info;
 module.exports = global.send = send;
 module.exports = global.sendError = sendError;
 module.exports = global.readMessage = readMessage;
 module.exports = global.dataValidation = dataValidation;
 module.exports = global.isValidFloat = isValidFloat;
 module.exports = global.contentType = contentType;
+module.exports = global.log = log;
+module.exports = global.info = info;

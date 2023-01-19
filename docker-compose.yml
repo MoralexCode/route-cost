@@ -1,14 +1,15 @@
 version: '3'
 
 services:
-  app:
+  routecost:
+    container_name: routecost
     platform: linux/amd64
     build:
       context: .
       dockerfile: containers/Dockerfile
     command: npm start 
     volumes:
-      - .:/app
+      - .:/app:cached
     ports:
       - "5050:5050"
   # test:

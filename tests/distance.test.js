@@ -31,6 +31,7 @@ const distance = {
 	},
 	successfull: true
 };
+
 describe('distance', () => {
 	test('Get distance before to arrive a one point into Map', async () => {
 		await api

@@ -19,16 +19,15 @@ const log = console.log;
 app.use(cors());
 app.use(express.urlencoded({extended: true}));
 app.use(express.json({limit: '100mb'}));
-
 //============ add Routes ===================
-const routes = require('./app/routes/costRoutes');
+const routes = require('./app/routes/index');
 
 // ruta base
-app.use('/api/v1/', routes);
+app.use('/api', routes);
 
 app.get('*', function (req, res) {
 	res.status(200).send({
-		message: 'Bienvenidos a CostRoutes'
+		message: 'Bienvenidos a RouteCost'
 	});
 });
 const server = app.listen(PORT, () => {

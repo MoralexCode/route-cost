@@ -8,9 +8,9 @@ const APPID = process.env.APPID; //API key from weather
 const MAPS_URL = process.env.MAPS_URL + APIKEY;
 const WEATHER_ZIP_CODE_URL = process.env.WEATHER_ZIP_CODE_URL + APPID;
 const controllerName = 'CostController';
-const info = console.info;
-const log = console.log;
+
 const error = console.error;
+
 function getCost(req, res) {
 	const {latorigen, lonorigen, latdestino, londestino} = req.params;
 	const PARAMS = `&origins=${latorigen},${lonorigen}&destinations=${latdestino},${londestino}`;
@@ -18,6 +18,7 @@ function getCost(req, res) {
 	const ORIGINPARAMS = `&lat=${latorigen}&lon=${lonorigen}`;
 	const DESTINATIONPARAMS = `&lat=${latdestino}&lon=${londestino}`;
 	let resultData = [];
+
 	if (validateParams(latorigen, lonorigen, latdestino, londestino)) {
 		axios
 			.get(MAPS_URL + PARAMS)
@@ -243,41 +244,6 @@ function getDayTime(time) {
 	return time.noche; //'Noche'
 }
 
-//get the distance by latitude and longitude
-function getDistanceByCoordinates(req, res) {
-	const {latorigen, lonorigen, latdestino, londestino} = req.params;
-	const PARAMS = `&origins=${latorigen},${lonorigen}&destinations=${latdestino},${londestino}`;
-	info(`URL ${MAPS_URL} ${PARAMS}`);
-
-	axios
-		.get(MAPS_URL + PARAMS)
-		.then(function (response) {
-			const {data} = response;
-			log(data);
-			send(res, data);
-		})
-		.catch(function (error) {
-			sendError(res, error, readMessage(controllerName, error));
-		});
-}
-
-//get the weather by latitude and longitude
-function getWeatherByCoordinates(req, res) {
-	const {lat, lon} = req.params;
-	const PARAMS = `&lat=${lat}&lon=${lon}`;
-	log(' URL : ', WEATHER_ZIP_CODE_URL + PARAMS);
-	axios
-		.get(WEATHER_ZIP_CODE_URL + PARAMS)
-		.then(function (response) {
-			const {data} = response;
-			log(data);
-			send(res, data);
-		})
-		.catch(function (error) {
-			sendError(res, error, readMessage(controllerName, error));
-		});
-}
-
 async function getParams(req, res) {
 	Price.findOne({}, (err, price) => {
 		if (err) {
@@ -385,8 +351,6 @@ function validateConfigParams(obj) {
 
 module.exports = {
 	getCost,
-	getWeatherByCoordinates,
-	getDistanceByCoordinates,
 	getParams,
 	setParams
 };
