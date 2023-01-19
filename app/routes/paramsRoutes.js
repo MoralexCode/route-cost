@@ -1,9 +1,10 @@
 'use strict';
 const express = require('express'),
-	CostController = require('../controllers/costController'),
+	paramsController = require('../controllers/paramsController'),
 	api = express.Router();
 
 // get cost by route include time, kilometer, origin and destiny weather
-api.get('/cost/:latorigen/:lonorigen/:latdestino/:londestino', CostController.getCost);
+api.get('/params', paramsController.getParams);
+api.post('/params', paramsController.setParams);
 
 module.exports = api;
