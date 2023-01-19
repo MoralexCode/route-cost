@@ -5,10 +5,10 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "NODE_ENV=development nodemon routecost.js",
-		"start": "NODE_ENV=production node  routecost.js",
-		"test2": "NODE_ENV=test  jest --watch --silent --detectOpenHandles",
+		"start": "NODE_ENV=development nodemon  routecost.js",
+		"test2": "NODE_ENV=test  jest --watchAll --silent --detectOpenHandles",
 		"test": "NODE_ENV=test  jest --verbose --silent --detectOpenHandles",
-		"test:watch": "npm run test -- --watch"
+		"test:watch": "npm run test -- --watchAll"
 	},
 	"repository": {
 		"type": "git",
