@@ -12,7 +12,7 @@ const controllerName = 'CostController';
 const error = console.error;
 
 function getCost(req, res) {
-	const {latorigen, lonorigen, latdestino, londestino} = req.params;
+	const { latorigen, lonorigen, latdestino, londestino } = req.params;
 	const PARAMS = `&origins=${latorigen},${lonorigen}&destinations=${latdestino},${londestino}`;
 	info(`URL ${MAPS_URL}${PARAMS}`);
 	const ORIGINPARAMS = `&lat=${latorigen}&lon=${lonorigen}`;
@@ -23,7 +23,7 @@ function getCost(req, res) {
 		axios
 			.get(MAPS_URL + PARAMS)
 			.then(function (response) {
-				const {data} = response;
+				const { data } = response;
 				resultData.push(data);
 				log(data);
 				if (
@@ -102,7 +102,7 @@ function getCost(req, res) {
 						});
 				} else {
 					console.log('response.data: vacio ', response.data);
-					sendError(res, {params: PARAMS, status: 'Location not found'});
+					sendError(res, { params: PARAMS, status: 'Location not found' });
 				}
 			})
 			.catch(function (error) {
@@ -194,7 +194,7 @@ function calculateCost(input, km, time, weatherCodeOrigin, weatherCodeDestinatio
 			(getWeatherFactor(input.factorclima, weatherCodeOrigin) +
 				getWeatherFactor(input.factorclima, weatherCodeDestination)) /
 			2, // cual es el factor del clima
-		factorTiempo = getDayTime(input.factortiempo[0]), // Dia, tarde o Noche
+		factorTiempo = getDayTime(input.factortiempo), // Dia, tarde o Noche
 		tiempoARecorrerMin = time / 60, // tiempo que se tardará en recorrer esa distancia (minutos)
 		tarifaXKilometro = input.costoChoferXMin; //costo del chofer por minuto(en pesos)
 	//valor = [(gastosXkilometroGasolina * NumeroKilometrosARecorrer) (factorDeClima)] + [FactorTiempo * tiempoARecorrerMin * costoChoferXMin]
@@ -208,7 +208,6 @@ function calculateCost(input, km, time, weatherCodeOrigin, weatherCodeDestinatio
 		banderazo,
 		kilometrosXRecorrer,
 		factorDeClima,
-		factorTiempo,
 		tiempoARecorrerMin,
 		costo: banderazo + tarifaXKilometro * kilometrosXRecorrer
 	};

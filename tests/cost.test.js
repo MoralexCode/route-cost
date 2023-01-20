@@ -1,6 +1,6 @@
 const supertest = require('supertest');
 const assert = require('assert');
-const {app, server} = require('../routecost');
+const { app, server } = require('../routecost');
 const api = supertest(app);
 const routeCost = {
 	data: {

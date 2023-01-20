@@ -3,7 +3,7 @@ require('dotenv').config();
 const paramsController = {},
 	controllerName = 'paramsController',
 	Price = require('../models/price');
-const {WEATHER_ZIP_CODE_URL, APPID} = process.env;
+const { WEATHER_ZIP_CODE_URL, APPID } = process.env;
 const WEATHER_URL = WEATHER_ZIP_CODE_URL + APPID;
 
 //+-----------------------------------------------------------------------------+
@@ -35,17 +35,17 @@ paramsController.getParams = async (req, res) => {
 //+-----------------------------------------------------------------------------+
 paramsController.setParams = (req, res) => {
 	const update = req.body;
-	const {id} = req.params;
+	const { id } = req.params;
 	const validParams = validateConfigParams(update);
 	if (validParams.status) {
 		Price.findOneAndUpdate(id, update, (err, priceUpdated) => {
 			if (err) {
-				sendError(res, error);
+				sendError(res, err);
 			} else {
 				if (!priceUpdated) {
 					sendError(res, 'Error al guardar los parametros en la base de datos');
 				} else {
-					console.log('priceUpdated | ', priceUpdated);
+					log('priceUpdated | ', priceUpdated);
 					send(res, priceUpdated);
 				}
 			}
@@ -54,71 +54,46 @@ paramsController.setParams = (req, res) => {
 		sendError(res, validParams.message);
 	}
 };
-
+function timeFactorValid(factorTime) {
+	let response = { message: 'Factor needs an object with numeric values' };
+	const ok = { status: true, message: '' };
+	Object.keys(factorTime).forEach(function (item) {
+		response = !factorTime[item] || !isValidFloat(factorTime[item]) ? response : ok;
+	});
+	return response;
+}
+function weatherFactorValid(weatherFactor) {
+	let response = { message: 'Factor needs an arrar with numeric values' };
+	Object.keys(weatherFactor).forEach(function (weather) {
+		Object.keys(weather).forEach(function (item) {
+			response = !isValidFloat(weather[item]) ? response : { status: true };
+		});
+	});
+	return response;
+}
+// TODO: validate dia, tarde y noche values
+// function hasAValidObject(factorTime, obj) {
+// 	Object.keys(obj).forEach(function (item) {
+// 		if (!obj.hasOwnProperty('dia)) return response;
+// 	});
+// }
 function validateConfigParams(obj) {
-	var response = {status: false, message: ''};
-	//validar el factor tiempo
-	if (
-		obj.factortiempo &&
-		obj.factortiempo != undefined &&
-		obj.factortiempo != null &&
-		obj.factortiempo.length > 0
-	) {
-		if (obj.factortiempo[0].dia && isValidFloat(obj.factortiempo[0].dia)) {
-			response = {status: true, message: ''};
-		} else {
-			response = {status: false, message: 'EL valor del dia debe ser numerico'};
-		}
-		if (obj.factortiempo[0].tarde && isValidFloat(obj.factortiempo[0].tarde)) {
-			response = {status: true, message: ''};
-		} else {
-			response = {status: false, message: 'EL valor de la tarde debe ser numerico'};
-		}
-		if (obj.factortiempo[0].noche && isValidFloat(obj.factortiempo[0].noche)) {
-			response = {status: true, message: ''};
-		} else {
-			response = {status: false, message: 'EL valor de la noche debe ser numerico'};
-		}
-	} else {
-		response = {status: false, message: 'EL factortiempo debe ser un arreglo con valores'};
+	const { factortiempo, factorclima, gasolina, rendimientoxkm, costoChoferXMin } = obj;
+	let response = { status: true, message: '' };
+	if (factortiempo && factortiempo.length > 0) {
+		response = timeFactorValid(factortiempo);
 	}
-	//validar el factor clima
-	if (
-		obj.factorclima &&
-		obj.factorclima != undefined &&
-		obj.factorclima != null &&
-		obj.factorclima.length > 0
-	) {
-		if (obj.factorclima[0].value && isValidFloat(obj.factorclima[0].value)) {
-			response = {status: true, message: ''};
-		} else {
-			response = {
-				status: false,
-				message: 'EL valor de' + obj.factorclima[0].name + 'debe ser numerico'
-			};
-		}
-	} else {
-		response = {status: false, message: 'EL factorclima debe ser un arreglo con valores'};
+	if (factorclima && factorclima.length > 0) {
+		response = weatherFactorValid(factorclima);
 	}
-
-	//validar la gasolina
-	if (obj.gasolina && isValidFloat(obj.gasolina)) {
-		response = {status: true, message: ''};
-	} else {
-		response = {status: false, message: 'EL valor de la gasolina debe ser numerico'};
+	if (!isValidFloat(gasolina)) {
+		response = { status: false, message: 'gasolina must be numeric' };
 	}
-
-	//validar la rendimientoxkm
-	if (obj.rendimientoxkm && isValidFloat(obj.rendimientoxkm)) {
-		response = {status: true, message: ''};
-	} else {
-		response = {status: false, message: 'EL valor del  rendimientoxkm debe ser numerico'};
+	if (!isValidFloat(rendimientoxkm)) {
+		response = { status: false, message: 'rendimientoxkm must be numeric' };
 	}
-	//validar la costoChoferXMin
-	if (obj.costoChoferXMin && isValidFloat(obj.costoChoferXMin)) {
-		response = {status: true, message: ''};
-	} else {
-		response = {status: false, message: 'EL valor del  costoChoferXMin debe ser numerico'};
+	if (!isValidFloat(costoChoferXMin)) {
+		response = { status: false, message: 'costoChoferXMin must be numeric' };
 	}
 
 	return response;

@@ -1,17 +1,15 @@
 const supertest = require('supertest');
 const assert = require('assert');
-const {app, server} = require('../routecost');
+const { app, server } = require('../routecost');
 const api = supertest(app);
 const params = {
-	gasolina: '1',
+	gasolina: '2',
 	rendimientoxkm: '14',
-	factortiempo: [
-		{
-			dia: '1',
-			tarde: '1.5',
-			noche: '2'
-		}
-	],
+	factortiempo: {
+		dia: '1',
+		tarde: '1.5',
+		noche: '2'
+	},
 	factorclima: [
 		{
 			code: 200,
@@ -44,7 +42,7 @@ const params = {
 			name: 'Clear'
 		}
 	],
-	costoChoferXMin: '10'
+	costoChoferXMin: '11'
 };
 describe('Params', () => {
 	test('Get the params to calculate the route cost', async () => {
