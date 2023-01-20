@@ -11,7 +11,7 @@ const controllerName = 'CostController';
 
 const error = console.error;
 
-function getCost(req, res) {
+async function getCost(req, res) {
 	const {latorigen, lonorigen, latdestino, londestino} = req.params;
 	const PARAMS = `&origins=${latorigen},${lonorigen}&destinations=${latdestino},${londestino}`;
 	info(`URL ${MAPS_URL}${PARAMS}`);
@@ -20,98 +20,82 @@ function getCost(req, res) {
 	let resultData = [];
 
 	if (validateParams(latorigen, lonorigen, latdestino, londestino)) {
-		axios
-			.get(MAPS_URL + PARAMS)
-			.then(function (response) {
-				const {data} = response;
-				resultData.push(data);
-				log(data);
-				if (
-					data &&
-					data.destination_addresses &&
-					data.destination_addresses[0] != '' &&
-					data.origin_addresses &&
-					data.origin_addresses[0] != ''
-				) {
-					axios
-						.get(WEATHER_ZIP_CODE_URL + ORIGINPARAMS)
-						.then(function (response) {
-							//origin weather
-							resultData.push(response.data);
-							axios
-								.get(WEATHER_ZIP_CODE_URL + DESTINATIONPARAMS)
-								.then(async response => {
-									//Destination weather
-									resultData.push(response.data);
-									let origin = {
-										place: resultData[0].origin_addresses[0],
-										name: resultData[1].name,
-										description: resultData[1].weather[0].description,
-										temp: resultData[1].main.temp,
-										icon:
-											'http://openweathermap.org/img/wn/' +
-											resultData[1].weather[0].icon +
-											'@2x.png'
-									};
-									let destination = {
-										place: resultData[0].destination_addresses[0],
-										name: resultData[2].name,
-										description: resultData[2].weather[0].description,
-										temp: resultData[2].main.temp,
-										icon:
-											'http://openweathermap.org/img/wn/' +
-											resultData[2].weather[0].icon +
-											'@2x.png'
-									};
-									let distance = 0;
-									let time = 0;
-									if (
-										resultData[0].rows[0].elements[0].status != 'ZERO_RESULTS'
-									) {
-										distance = resultData[0].rows[0].elements[0].distance.text;
-										time = resultData[0].rows[0].elements[0].duration.text;
-									} else {
-										log(
-											'No hay resultados para la distancia| ',
-											resultData[0].rows[0].elements[0]
-										);
-									}
+		const distance = await getDistanceByCoordinates(MAPS_URL + PARAMS);
+		const {destination_addresses, origin_addresses} = distance;
+		resultData.push(distance);
 
-									let precio = await findPrice();
-									log(
-										`precio | ${precio} ${resultData} ${origin} ${destination} ${distance} ${time}`
-									);
-									await buildResponse(
-										precio,
-										resultData,
-										origin,
-										destination,
-										distance,
-										time,
-										res
-									);
-								})
-								.catch(function (error) {
-									log('error : ', error);
-									sendError(res, error);
-								});
-						})
-						.catch(function (error) {
-							console.log('error : ', error);
-							sendError(res, error);
-						});
-				} else {
-					console.log('response.data: vacio ', response.data);
-					sendError(res, {params: PARAMS, status: 'Location not found'});
-				}
-			})
-			.catch(function (error) {
-				console.log('error : ', error);
-				sendError(res, error);
-			});
+		// const {destination_addresses, origin_addresses} = response.data;
+		if (destination_addresses && origin_addresses) {
+			const originWeather = await getWeatherByCoordinates(
+				WEATHER_ZIP_CODE_URL + ORIGINPARAMS
+			);
+			const destinationWeather = await getWeatherByCoordinates(
+				WEATHER_ZIP_CODE_URL + DESTINATIONPARAMS
+			);
+			resultData.push(originWeather);
+			resultData.push(destinationWeather);
+
+			const origin = {
+				place: resultData[0].origin_addresses[0],
+				name: resultData[1].name,
+				description: resultData[1].weather[0].description,
+				temp: resultData[1].main.temp,
+				icon:
+					'http://openweathermap.org/img/wn/' + resultData[1].weather[0].icon + '@2x.png'
+			};
+			const destination = {
+				place: resultData[0].destination_addresses[0],
+				name: resultData[2].name,
+				description: resultData[2].weather[0].description,
+				temp: resultData[2].main.temp,
+				icon:
+					'http://openweathermap.org/img/wn/' + resultData[2].weather[0].icon + '@2x.png'
+			};
+			let distance = 0;
+			let time = 0;
+			if (resultData[0].rows[0].elements[0].status != 'ZERO_RESULTS') {
+				distance = resultData[0].rows[0].elements[0].distance.text;
+				time = resultData[0].rows[0].elements[0].duration.text;
+			} else {
+				log('No hay resultados para la distancia| ', resultData[0].rows[0].elements[0]);
+			}
+
+			const precio = await Price.findOne({}).clone();
+			log(`precio | ${precio} ${resultData} ${origin} ${destination} ${distance} ${time}`);
+			await buildResponse(precio, resultData, origin, destination, distance, time, res);
+		} else {
+			console.log('response.data: vacio ', response.data);
+			sendError(res, {params: PARAMS, status: 'Location not found'});
+		}
 	} else {
 		sendError(res, 'Latitud y longitud deben de ser numericos');
 	}
+}
+async function getWeatherByCoordinates(url) {
+	log(' URL : ', url);
+	return await axios
+		.get(url)
+		.then(function (response) {
+			const {data} = response;
+			log(data);
+			return data;
+		})
+		.catch(function (error) {
+			throw error;
+		});
+}
+
+async function getDistanceByCoordinates(url) {
+	return await axios
+		.get(url)
+		.then(function (response) {
+			const {data} = response;
+			log(data);
+			return data;
+		})
+		.catch(function (error) {
+			throw error;
+		});
 }
 
 async function buildResponse(prices, resultData, origin, destination, distance, time, res) {
@@ -137,44 +121,15 @@ async function buildResponse(prices, resultData, origin, destination, distance, 
 	let recordSaved = await saveRecord(input, output);
 	dataValidation(res, output, controllerName);
 }
-async function findPrice() {
-	return await Price.findOne({}, (err, price) => {
-		if (err) {
-			console.log(' Price not found ');
-			return err;
-		} else {
-			if (!price) {
-				console.log('There are not Prices in DB');
-				return price;
-			} else {
-				return {
-					factorclima: price.factorclima,
-					factortiempo: price.factortiempo,
-					gasolina: price.gasolina,
-					rendimientoxkm: price.rendimientoxkm,
-					costoChoferXMin: price.costoChoferXMin
-				};
-				// console.log('price found : INPUTS ', INPUTS)
-			}
-		}
-	}).clone();
-}
+
 async function saveRecord(input, output) {
 	let record = new Record();
-	record.input = input; //{factorclima: prices.factorclima, factortiempo: prices.factortiempo, gasolina: prices.gasolina, rendimientoxkm: prices.rendimientoxkm, costoChoferXMin: prices.costoChoferXMin };
+	record.input = input;
 	record.output = output;
-	return record.save((err, recordStored) => {
-		// save record
-		if (err) {
-			console.log('Error to save record', err);
-		} else {
-			if (!recordStored) {
-				console.log('Has been not  save record');
-			} else {
-				console.log('Record to save : ', recordStored);
-				return recordStored;
-			}
-		}
+	return await record.save((err, recordStored) => {
+		if (err) log('Error to save record', err);
+		if (recordStored) return recordStored;
+		log('Has been not  save record');
 	});
 }
 
@@ -199,6 +154,7 @@ function calculateCost(input, km, time, weatherCodeOrigin, weatherCodeDestinatio
 		tiempoARecorrerMin = time / 60, // tiempo que se tardará en recorrer esa distancia (minutos)
 		tarifaXKilometro = input.costoChoferXMin; //costo del chofer por minuto(en pesos)
 	//valor = [(gastosXkilometroGasolina * NumeroKilometrosARecorrer) (factorDeClima)] + [FactorTiempo * tiempoARecorrerMin * costoChoferXMin]
+	//valor = [(1.8 * 6)(1.6)] + (0.5*10) = (10.8 * 1.6) + 5 = 6.48  +5 = 11.48
 	return {
 		banderazo,
 		kilometrosXRecorrer,
@@ -211,7 +167,6 @@ function calculateCost(input, km, time, weatherCodeOrigin, weatherCodeDestinatio
 		tiempoARecorrerMin,
 		costo: banderazo + tarifaXKilometro * kilometrosXRecorrer
 	};
-	//valor = [(1.8 * 6)(1.6)] + (0.5*10) = (10.8 * 1.6) + 5 = 6.48  +5 = 11.48
 }
 
 function getWeatherFactor(weatherPrice, weather) {
