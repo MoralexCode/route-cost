@@ -3,7 +3,7 @@ require('dotenv').config();
 const paramsController = {},
 	controllerName = 'paramsController',
 	Price = require('../models/price');
-const { WEATHER_ZIP_CODE_URL, APPID } = process.env;
+const {WEATHER_ZIP_CODE_URL, APPID} = process.env;
 const WEATHER_URL = WEATHER_ZIP_CODE_URL + APPID;
 
 //+-----------------------------------------------------------------------------+
@@ -16,7 +16,7 @@ const WEATHER_URL = WEATHER_ZIP_CODE_URL + APPID;
 paramsController.getParams = async (req, res) => {
 	Price.findOne({}, (err, price) => {
 		if (err) {
-			sendError(res, error);
+			sendError(res, err);
 		} else {
 			if (!price) {
 				sendError(res, 'No hay precios en la base de datos');
@@ -35,7 +35,7 @@ paramsController.getParams = async (req, res) => {
 //+-----------------------------------------------------------------------------+
 paramsController.setParams = (req, res) => {
 	const update = req.body;
-	const { id } = req.params;
+	const {id} = req.params;
 	const validParams = validateConfigParams(update);
 	if (validParams.status) {
 		Price.findOneAndUpdate(id, update, (err, priceUpdated) => {
@@ -55,18 +55,18 @@ paramsController.setParams = (req, res) => {
 	}
 };
 function timeFactorValid(factorTime) {
-	let response = { message: 'Factor needs an object with numeric values' };
-	const ok = { status: true, message: '' };
+	let response = {message: 'Factor needs an object with numeric values'};
+	const ok = {status: true, message: ''};
 	Object.keys(factorTime).forEach(function (item) {
 		response = !factorTime[item] || !isValidFloat(factorTime[item]) ? response : ok;
 	});
 	return response;
 }
 function weatherFactorValid(weatherFactor) {
-	let response = { message: 'Factor needs an arrar with numeric values' };
+	let response = {message: 'Factor needs an arrar with numeric values'};
 	Object.keys(weatherFactor).forEach(function (weather) {
 		Object.keys(weather).forEach(function (item) {
-			response = !isValidFloat(weather[item]) ? response : { status: true };
+			response = !isValidFloat(weather[item]) ? response : {status: true};
 		});
 	});
 	return response;
@@ -78,8 +78,8 @@ function weatherFactorValid(weatherFactor) {
 // 	});
 // }
 function validateConfigParams(obj) {
-	const { factortiempo, factorclima, gasolina, rendimientoxkm, costoChoferXMin } = obj;
-	let response = { status: true, message: '' };
+	const {factortiempo, factorclima, gasolina, rendimientoxkm, costoChoferXMin} = obj;
+	let response = {status: true, message: ''};
 	if (factortiempo && factortiempo.length > 0) {
 		response = timeFactorValid(factortiempo);
 	}
@@ -87,13 +87,13 @@ function validateConfigParams(obj) {
 		response = weatherFactorValid(factorclima);
 	}
 	if (!isValidFloat(gasolina)) {
-		response = { status: false, message: 'gasolina must be numeric' };
+		response = {status: false, message: 'gasolina must be numeric'};
 	}
 	if (!isValidFloat(rendimientoxkm)) {
-		response = { status: false, message: 'rendimientoxkm must be numeric' };
+		response = {status: false, message: 'rendimientoxkm must be numeric'};
 	}
 	if (!isValidFloat(costoChoferXMin)) {
-		response = { status: false, message: 'costoChoferXMin must be numeric' };
+		response = {status: false, message: 'costoChoferXMin must be numeric'};
 	}
 
 	return response;

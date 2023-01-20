@@ -12,7 +12,7 @@ const controllerName = 'CostController';
 const error = console.error;
 
 function getCost(req, res) {
-	const { latorigen, lonorigen, latdestino, londestino } = req.params;
+	const {latorigen, lonorigen, latdestino, londestino} = req.params;
 	const PARAMS = `&origins=${latorigen},${lonorigen}&destinations=${latdestino},${londestino}`;
 	info(`URL ${MAPS_URL}${PARAMS}`);
 	const ORIGINPARAMS = `&lat=${latorigen}&lon=${lonorigen}`;
@@ -23,7 +23,7 @@ function getCost(req, res) {
 		axios
 			.get(MAPS_URL + PARAMS)
 			.then(function (response) {
-				const { data } = response;
+				const {data} = response;
 				resultData.push(data);
 				log(data);
 				if (
@@ -102,7 +102,7 @@ function getCost(req, res) {
 						});
 				} else {
 					console.log('response.data: vacio ', response.data);
-					sendError(res, { params: PARAMS, status: 'Location not found' });
+					sendError(res, {params: PARAMS, status: 'Location not found'});
 				}
 			})
 			.catch(function (error) {
@@ -188,6 +188,7 @@ function validateParams(lat, lon, lat2, lon2) {
 
 function calculateCost(input, km, time, weatherCodeOrigin, weatherCodeDestination) {
 	/**Se agrega modificación , dado que inicialmente se va contratar un servicio de transporte que recoja las muestras */
+	console.log('getWeatherFactor |', getWeatherFactor(input.factorclima, weatherCodeOrigin));
 	const banderazo = parseFloat(input.gasolina),
 		kilometrosXRecorrer = km / 1000, //numero de kilometros a recorrer
 		factorDeClima =
@@ -198,7 +199,6 @@ function calculateCost(input, km, time, weatherCodeOrigin, weatherCodeDestinatio
 		tiempoARecorrerMin = time / 60, // tiempo que se tardará en recorrer esa distancia (minutos)
 		tarifaXKilometro = input.costoChoferXMin; //costo del chofer por minuto(en pesos)
 	//valor = [(gastosXkilometroGasolina * NumeroKilometrosARecorrer) (factorDeClima)] + [FactorTiempo * tiempoARecorrerMin * costoChoferXMin]
-	//console.log("Resultado :", gastosXkilometroGasolina, kilometrosXRecorrer, factorDeClima, factorTiempo, tiempoARecorrerMin, costoChoferXMin, '= ', gastosXkilometroGasolina * kilometrosXRecorrer * factorDeClima) + (factorTiempo * tiempoARecorrerMin * costoChoferXMin)
 	return {
 		banderazo,
 		kilometrosXRecorrer,
@@ -212,26 +212,11 @@ function calculateCost(input, km, time, weatherCodeOrigin, weatherCodeDestinatio
 		costo: banderazo + tarifaXKilometro * kilometrosXRecorrer
 	};
 	//valor = [(1.8 * 6)(1.6)] + (0.5*10) = (10.8 * 1.6) + 5 = 6.48  +5 = 11.48
-	/**Versión anterior */
-	// const gastosXkilometroGasolina = (parseFloat(input.gasolina) / parseFloat(input.rendimientoxkm)), //cuanto $ cuesta recorrer 1 km en el vehiculo,$20/15km=1.3$  gasolina $20 el litro y rinde para 15km 20/15=1.3
-	//     kilometrosXRecorrer = (km / 1000), //numero de kilometros a recorrer
-	//     factorDeClima = (getWeatherFactor(input.factorclima, weatherCodeOrigin) + getWeatherFactor(input.factorclima, weatherCodeDestination)) / 2, // cual es el factor del clima
-	//     factorTiempo = getDayTime(input.factortiempo[0]), // Dia, tarde o Noche
-	//     tiempoARecorrerMin = (time / 60), // tiempo que se tardará en recorrer esa distancia (minutos)
-	//     costoChoferXMin = input.costoChoferXMin //costo del chofer por minuto(en pesos)
-	//     valor = [(gastosXkilometroGasolina * NumeroKilometrosARecorrer) (factorDeClima)] + [FactorTiempo * tiempoARecorrerMin * costoChoferXMin]
-	//     console.log("Resultado :", gastosXkilometroGasolina, kilometrosXRecorrer, factorDeClima, factorTiempo, tiempoARecorrerMin, costoChoferXMin, '= ', gastosXkilometroGasolina * kilometrosXRecorrer * factorDeClima) + (factorTiempo * tiempoARecorrerMin * costoChoferXMin)
-	//     return { gastosXkilometroGasolina, kilometrosXRecorrer, factorDeClima, factorTiempo, tiempoARecorrerMin, costoChoferXMin, gastosXkilometroGasolina, kilometrosXRecorrer, factorDeClima, factorTiempo, tiempoARecorrerMin, costoChoferXMin, costo: (gastosXkilometroGasolina * kilometrosXRecorrer * factorDeClima) + (factorTiempo * tiempoARecorrerMin * costoChoferXMin) }
-	//     valor = [(1.8 * 6)(1.6)] + (0.5*10) = (10.8 * 1.6) + 5 = 6.48  +5 = 11.48
 }
 
 function getWeatherFactor(weatherPrice, weather) {
-	for (var i = 0; i < weatherPrice.length; i++) {
-		if (weatherPrice[i].code == weather) {
-			return weatherPrice[i].value;
-		}
-	}
-	return 1.5; //valor por default
+	const condtions = weatherPrice.find(w => w.code == weather);
+	return condtions ? condtions.value : 1.5;
 }
 
 function getDayTime(time) {

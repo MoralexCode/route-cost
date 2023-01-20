@@ -1,6 +1,6 @@
 const supertest = require('supertest');
 const assert = require('assert');
-const { app, server } = require('../routecost');
+const {app, server} = require('../routecost');
 const api = supertest(app);
 const params = {
 	gasolina: '2',
@@ -40,6 +40,11 @@ const params = {
 			code: 800,
 			value: '1',
 			name: 'Clear'
+		},
+		{
+			code: 801,
+			value: '1',
+			name: 'Clouds'
 		}
 	],
 	costoChoferXMin: '11'
