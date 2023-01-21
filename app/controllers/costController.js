@@ -31,8 +31,9 @@ async function getCost(req, res) {
 	if (params) {
 		const cost = await calculateCost(params, elements, originWeather, destinationWeather);
 		await buildResponse(res, cost, origin, destination, elements);
+	} else {
+		sendError(res, 'There are not Params');
 	}
-	sendError(res, 'There are not Params');
 }
 async function getWeatherByCoordinates(url) {
 	info(' URL : ', url);
