@@ -73,7 +73,7 @@ async function buildResponse(res, cost, origin, destination, elements) {
 		cost: cost.costo,
 		distance,
 		time,
-		message: '#AmoTirarCodigo'
+		message: '#MoralexCode'
 	};
 	await saveRecord(input, output);
 	dataValidation(res, output, controllerName);

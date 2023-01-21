@@ -5,22 +5,22 @@ const api = supertest(app);
 const distance = {
 	data: {
 		destination_addresses: [
-			'Guelaguetza 120, La Asuncion, 71222 Santa María Atzompa, Oax., Mexico'
+			'Av Vallarta 3959 C.C. Gran Plaza, Local, V1, Don Bosco Vallarta, 45049 Zapopan, Jal., Mexico'
 		],
 		origin_addresses: [
-			'20 de Noviembre, Aguascalientes, 70710 Santa María Jalapa del Marqués, Oax., Mexico'
+			'C. Clemente Rueda 56, San Fernando, 52765 Naucalpan de Juárez, Méx., Mexico'
 		],
 		rows: [
 			{
 				elements: [
 					{
 						distance: {
-							text: '228 km',
-							value: 227552
+							text: '526 km',
+							value: 526394
 						},
 						duration: {
-							text: '4 hours 20 mins',
-							value: 15602
+							text: '6 hours 6 mins',
+							value: 21975
 						},
 						status: 'OK'
 					}
@@ -35,7 +35,7 @@ const distance = {
 describe('distance', () => {
 	test('Get distance before to arrive a one point into Map', async () => {
 		await api
-			.get('/api/v1/distance/16.430746/-95.4399602/17.0812951/-96.7707511')
+			.get('/api/v1/distance/19.3906797/-99.2840425/20.6737776/-103.4056253')
 			.expect(200)
 			.expect('Content-Type', contentType)
 			.then(response => {
