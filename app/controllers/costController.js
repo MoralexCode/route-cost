@@ -1,7 +1,7 @@
 'use strict';
 const axios = require('axios');
 const Record = require('../models/record');
-const Price = require('../models/price');
+const Params = require('../models/params');
 require('dotenv').config();
 //APIKEY google maps, APPID key from weather
 const {APIKEY, APPID, WEATHER_ZIP_CODE_URL, MAPS_URL} = process.env;
@@ -27,17 +27,20 @@ async function getCost(req, res) {
 
 	const origin = getPlaceDetails(origin_addresses, originWeather);
 	const destination = getPlaceDetails(destination_addresses, destinationWeather);
-
-	const cost = await calculateCost(elements, originWeather, destinationWeather);
-	await buildResponse(res, cost, origin, destination, elements);
+	const params = await Params.findOne({}).clone();
+	if (params) {
+		const cost = await calculateCost(params, elements, originWeather, destinationWeather);
+		await buildResponse(res, cost, origin, destination, elements);
+	}
+	sendError(res, 'There are not Params');
 }
 async function getWeatherByCoordinates(url) {
-	log(' URL : ', url);
+	info(' URL : ', url);
 	return await axios
 		.get(url)
 		.then(function (response) {
 			const {data} = response;
-			log(data);
+			info(data);
 			return data;
 		})
 		.catch(function (error) {
@@ -46,12 +49,12 @@ async function getWeatherByCoordinates(url) {
 }
 
 async function getDistanceByCoordinates(url) {
-	log(' URL : ', url);
+	info(' URL : ', url);
 	return await axios
 		.get(url)
 		.then(function (response) {
 			const {data} = response;
-			log(data);
+			info(data);
 			return data;
 		})
 		.catch(function (error) {
@@ -80,15 +83,13 @@ async function saveRecord(input, output) {
 	record.input = input;
 	record.output = output;
 	return await record.save((err, recordStored) => {
-		if (err) log('Error to save record', err);
-		if (recordStored) return recordStored;
-		log('Has been not  save record');
+		if (err || !recordStored) alert({type: 'warning', msg: err});
 	});
 }
 
 function validateParams(params) {
 	const {latorigen, lonorigen, latdestino, londestino} = params;
-	log(latorigen, lonorigen, latdestino, londestino);
+	info(latorigen, lonorigen, latdestino, londestino);
 	if (
 		isValidFloat(latorigen) &&
 		isValidFloat(lonorigen) &&
@@ -100,11 +101,9 @@ function validateParams(params) {
 	return false;
 }
 // TODO: create a new formula
-async function calculateCost(elements, originWeather, destinationWeather) {
-	const params = await Price.findOne({}).clone();
+async function calculateCost(params, elements, originWeather, destinationWeather) {
 	const {gasolina, factorclima, factortiempo, costoChoferXMin} = params;
 	const {distance, duration} = elements;
-	elements;
 	const banderazo = parseFloat(gasolina),
 		kilometrosXRecorrer = distance.value / 1000, //kilometros a recorrer
 		factorDeClima =

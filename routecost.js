@@ -32,10 +32,9 @@ app.get('*', function (req, res) {
 });
 const server = app.listen(PORT, () => {
 	const appName = pkg.name;
-	// log(appName, `DB host http://${URI}/`);
 	db.connect(URI, {useNewUrlParser: true, useUnifiedTopology: true})
 		.then(() => {
-			log(
+			info(
 				boxen(
 					`👂Listening at http://${HOST}:${PORT}\n[DB] Conectada con éxito  \n🔥  ${cyan(
 						` Learn, develop, enjoy, repeat  `

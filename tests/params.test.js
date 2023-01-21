@@ -63,9 +63,9 @@ describe('Params', () => {
 			});
 	});
 
-	test('Set the params to calculate the route cost', async () => {
+	test('Update the params to calculate the route cost', async () => {
 		await api
-			.post('/api/v1/params')
+			.put('/api/v1/params')
 			.send(params)
 			.expect(200)
 			.expect('Content-Type', contentType)

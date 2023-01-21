@@ -15,13 +15,11 @@ const WEATHER_URL = WEATHER_ZIP_CODE_URL + APPID;
 weatherController.getWeatherByCoordinates = (req, res) => {
 	const {lat, lon} = req.params;
 	const PARAMS = `&lat=${lat}&lon=${lon}`;
-	log(' URL : ', WEATHER_URL + PARAMS);
+	info(' URL : ', WEATHER_URL + PARAMS);
 	axios
 		.get(WEATHER_URL + PARAMS)
 		.then(function (response) {
-			const {data} = response;
-			log(data);
-			send(res, data);
+			send(res, response.data);
 		})
 		.catch(function (error) {
 			sendError(res, error, readMessage(controllerName, error));

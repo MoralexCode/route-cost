@@ -29,7 +29,8 @@
 		"mongoose": "^6.8.4",
 		"weather-js": "^2.0.0",
 		"boxen": "5.1.2",
-		"chalk": "4.1.0"
+		"chalk": "4.1.0",
+		"cli-alerts": "^1.2.2"
 	},
 	"devDependencies": {
 		"babel-cli": "^6.26.0",

@@ -2,7 +2,7 @@
 require('dotenv').config();
 const paramsController = {},
 	controllerName = 'paramsController',
-	Price = require('../models/price');
+	Params = require('../models/params');
 const {WEATHER_ZIP_CODE_URL, APPID} = process.env;
 const WEATHER_URL = WEATHER_ZIP_CODE_URL + APPID;
 
@@ -14,12 +14,12 @@ const WEATHER_URL = WEATHER_ZIP_CODE_URL + APPID;
 //+-----------------------------------------------------------------------------+
 
 paramsController.getParams = async (req, res) => {
-	Price.findOne({}, (err, price) => {
+	Params.findOne({}, (err, price) => {
 		if (err) {
 			sendError(res, err);
 		} else {
 			if (!price) {
-				sendError(res, 'No hay precios en la base de datos');
+				sendError(res, 'There are not Params to show');
 			} else {
 				send(res, price);
 			}
@@ -33,20 +33,19 @@ paramsController.getParams = async (req, res) => {
 //| set the params values to calculate the route cost and apply bussiness rules |
 //|                                                                             |
 //+-----------------------------------------------------------------------------+
-paramsController.setParams = (req, res) => {
+paramsController.updateParams = (req, res) => {
 	const update = req.body;
 	const {id} = req.params;
 	const validParams = validateConfigParams(update);
 	if (validParams.status) {
-		Price.findOneAndUpdate(id, update, (err, priceUpdated) => {
+		Params.findOneAndUpdate(id, update, (err, paramsUpdated) => {
 			if (err) {
 				sendError(res, err);
 			} else {
-				if (!priceUpdated) {
-					sendError(res, 'Error al guardar los parametros en la base de datos');
+				if (!paramsUpdated) {
+					sendError(res, 'Error to update params');
 				} else {
-					log('priceUpdated | ', priceUpdated);
-					send(res, priceUpdated);
+					send(res, paramsUpdated);
 				}
 			}
 		});

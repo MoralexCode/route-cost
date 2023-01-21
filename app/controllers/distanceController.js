@@ -19,9 +19,7 @@ weatherController.getDistanceByCoordinates = (req, res) => {
 	axios
 		.get(URL + PARAMS)
 		.then(function (response) {
-			const {data} = response;
-			log(data);
-			send(res, data);
+			send(res, response.data);
 		})
 		.catch(function (error) {
 			sendError(res, error, readMessage(controllerName, error));

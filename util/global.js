@@ -1,6 +1,8 @@
 'use strict';
-const error = console.error;
+const alert = require('cli-alerts');
+
 const send = (respuesta, data, message, codeResponse) => {
+	alert({type: 'info', msg: JSON.stringify(data)});
 	respuesta.status(codeResponse || 200).send({
 		codeResponse,
 		data,
@@ -10,7 +12,7 @@ const send = (respuesta, data, message, codeResponse) => {
 };
 
 const sendError = (respuesta, data, message, codeResponse) => {
-	error('Error values | ', data);
+	alert({type: 'warning', msg: data});
 	respuesta.status(codeResponse || 500).send({
 		codeResponse,
 		data,
