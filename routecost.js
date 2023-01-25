@@ -5,7 +5,7 @@ const express = require('express'),
 const boxen = require('boxen');
 const cors = require('cors');
 const pkg = require('./package.json');
-const {green, yellow, cyan, dim} = require('chalk');
+const {cyan} = require('chalk');
 require('dotenv').config();
 const ENV = process.env; // GET environment variables
 const PORT = ENV.PORT || 3000;
@@ -24,7 +24,6 @@ const routes = require('./app/routes/index');
 
 // ruta base
 app.use('/api', routes);
-
 app.get('*', function (req, res) {
 	res.status(200).send({
 		message: 'Bienvenidos a RouteCost'

@@ -6,7 +6,7 @@
 
 # Descripción
 
-Esta API REST sirve para obtener la distancia, el clima de un punto **A** un punto **B ** y ademas calcula el costo que implica desplazarse.
+Esta API REST sirve para obtener la distancia, el clima de un punto **A** un punto **B** y ademas calcula el costo que implica desplazarse.
 
 This API REST get the score and data of any route , in otherwise is the route cost computing.
 

@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  app:
+    container_name: routecost
+    build:
+      context: .
+      dockerfile: containers/Dockerfile.dev
+    ports:
+      - "5050:5050"
+    # links:
+    #   - mongodb 
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      
+  # mongodb:
+  #   container_name: mongodb
+  #   image: mongo
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #       - MONGO_INITDB_ROOT_USERNAME=root
+  #       - MONGO_INITDB_ROOT_PASSWORD=password
+  #       # - MONGO_INITDB_DATABASE=routecost
+  #   volumes:
+  #     - mongo-data:/data/db
+  #     # mysql -> /var/lib/mysql
+  #     # postgres -> /var/lib/postgresql/data
+
+# volumes:
+#   mongo-data:
